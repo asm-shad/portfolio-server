@@ -1,7 +1,7 @@
 // src/modules/post/post.routes.ts
 import express from "express";
 import { PostController } from "./post.controller";
-import { verifyToken } from "../../utils.ts/auth.middleware";
+import { verifyToken } from "../../middleware/auth";
 
 const router = express.Router();
 

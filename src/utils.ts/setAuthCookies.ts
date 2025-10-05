@@ -1,9 +1,7 @@
 import { Response } from "express";
+import { Tokens } from "./jwt";
 
-export const setAuthCookies = (
-  res: Response,
-  tokens: { accessToken: string; refreshToken: string }
-) => {
+export const setAuthCookies = (res: Response, tokens: Tokens) => {
   res.cookie("accessToken", tokens.accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
