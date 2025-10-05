@@ -1,6 +1,7 @@
 import { prisma } from "../../config/db";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { generateTokens } from "../../utils.ts/jwt";
 
 const loginWithEmailAndPassword = async ({
   email,
@@ -11,26 +12,28 @@ const loginWithEmailAndPassword = async ({
 }) => {
   const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user) {
-    throw new Error("User not found!");
-  }
-
-  if (!user.password) {
-    throw new Error("This account uses social login only.");
-  }
+  if (!user) throw new Error("User not found!");
+  if (!user.password) throw new Error("This account uses social login only.");
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) throw new Error("Incorrect password!");
 
-  if (!isPasswordValid) {
-    throw new Error("Incorrect password!");
-  }
+  // Generate JWT tokens
+  const tokens = generateTokens({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  });
 
   return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    picture: user.picture,
-    role: user.role,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      picture: user.picture,
+      role: user.role,
+    },
+    tokens,
   };
 };
 
@@ -43,17 +46,26 @@ const authWithGoogle = async (data: Prisma.UserCreateInput) => {
         email: data.email!,
         name: data.name,
         picture: data.picture,
-        password: null, // Social login user
+        password: null, // for social login users
       },
     });
   }
 
-  return {
+  const tokens = generateTokens({
     id: user.id,
-    name: user.name,
     email: user.email,
-    picture: user.picture,
     role: user.role,
+  });
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      picture: user.picture,
+      role: user.role,
+    },
+    tokens,
   };
 };
 
