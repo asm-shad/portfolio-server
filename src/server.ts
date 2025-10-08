@@ -2,6 +2,7 @@ import http, { Server } from "http";
 import app from "./app";
 import dotenv from "dotenv";
 import { prisma } from "./config/db";
+import { seedOwnerIfMissing } from "./utils.ts/seedOwner";
 
 dotenv.config();
 
@@ -20,6 +21,10 @@ async function connectToDB() {
 async function startServer() {
   try {
     await connectToDB();
+
+    // 👇 seed the owner right after DB is up
+    await seedOwnerIfMissing();
+
     server = http.createServer(app);
     server.listen(process.env.PORT, () => {
       console.log(`🚀 Server is running on port ${process.env.PORT}`);
