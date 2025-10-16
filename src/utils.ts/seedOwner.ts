@@ -1,7 +1,6 @@
-// src/bootstrap/seedOwner.ts
 import "dotenv/config";
 import { prisma } from "../config/db";
-import { hashPassword } from "../utils.ts/bcrypt"; // <- make sure path matches your project
+import { hashPassword } from "../utils.ts/bcrypt";
 
 type Role = "SUPER_ADMIN" | "ADMIN" | "USER";
 
@@ -18,6 +17,7 @@ export async function seedOwnerIfMissing() {
     ADMIN_GITHUB,
     ADMIN_LINKEDIN,
     ADMIN_TWITTER,
+    ADMIN_SKILLS,
   } = process.env as Record<string, string | undefined>;
 
   if (!ADMIN_EMAIL) {
@@ -27,19 +27,21 @@ export async function seedOwnerIfMissing() {
 
   const OWNER_ROLE: Role = "SUPER_ADMIN";
 
-  // Any active owner present?
   const existingActiveOwner = await prisma.user.findFirst({
     where: { status: "ACTIVE", role: { in: ["ADMIN", "SUPER_ADMIN"] } },
   });
 
-  // If an active owner exists with a different email, just log (don’t kill the server at boot)
   if (existingActiveOwner && existingActiveOwner.email !== ADMIN_EMAIL) {
     console.log(
-      `👑 Active owner already exists (${existingActiveOwner.email}). ` +
-        `Seed skipped. To change owner, demote/remove the existing owner or change ADMIN_EMAIL.`
+      `👑 Active owner already exists (${existingActiveOwner.email}). Seed skipped.`
     );
     return;
   }
+
+  // ✅ parse skills safely
+  const parsedSkills = ADMIN_SKILLS
+    ? ADMIN_SKILLS.split(",").map((s) => s.trim())
+    : [];
 
   const baseData = {
     name: ADMIN_NAME ?? "Portfolio Owner",
@@ -52,6 +54,7 @@ export async function seedOwnerIfMissing() {
     github: ADMIN_GITHUB || null,
     linkedin: ADMIN_LINKEDIN || null,
     twitter: ADMIN_TWITTER || null,
+    skills: parsedSkills, // ✅ include in seed
     status: "ACTIVE" as const,
     isVerified: true,
     role: OWNER_ROLE,
@@ -61,7 +64,7 @@ export async function seedOwnerIfMissing() {
     where: { email: ADMIN_EMAIL },
   });
 
-  let passwordHash: string | undefined = undefined;
+  let passwordHash: string | undefined;
   if (ADMIN_PASSWORD && ADMIN_PASSWORD.trim().length >= 8) {
     passwordHash = await hashPassword(ADMIN_PASSWORD);
   }

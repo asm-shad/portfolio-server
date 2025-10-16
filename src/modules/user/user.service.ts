@@ -7,7 +7,6 @@ const createUser = async (payload: Prisma.UserCreateInput) => {
     payload.password = await bcrypt.hash(payload.password, 10);
   }
 
-  // Enforce single owner on create
   if (payload.role === "ADMIN" || payload.role === "SUPER_ADMIN") {
     const existingOwner = await prisma.user.findFirst({
       where: { status: "ACTIVE", role: { in: ["ADMIN", "SUPER_ADMIN"] } },
@@ -17,9 +16,11 @@ const createUser = async (payload: Prisma.UserCreateInput) => {
     }
   }
 
-  // Return only safe fields
   return prisma.user.create({
-    data: payload,
+    data: {
+      ...payload,
+      skills: (payload as any).skills ?? [], // ✅ default
+    },
     select: {
       id: true,
       name: true,
@@ -28,9 +29,15 @@ const createUser = async (payload: Prisma.UserCreateInput) => {
       picture: true,
       role: true,
       status: true,
+      location: true,
+      website: true,
+      github: true,
+      linkedin: true,
+      twitter: true,
+      skills: true,
       createdAt: true,
       updatedAt: true,
-      // password intentionally omitted
+      _count: { select: { posts: true, projects: true } },
     },
   });
 };
@@ -45,14 +52,22 @@ const getAllFromDB = async () => {
       picture: true,
       role: true,
       status: true,
+      location: true,
+      website: true,
+      github: true,
+      linkedin: true,
+      twitter: true,
+      skills: true,
       createdAt: true,
       updatedAt: true,
+      _count: { select: { posts: true, projects: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 };
 
 const getUserById = async (id: number) => {
+  // Lightweight version (counts)
   return prisma.user.findUnique({
     where: { id },
     select: {
@@ -63,22 +78,23 @@ const getUserById = async (id: number) => {
       picture: true,
       role: true,
       status: true,
+      location: true,
+      website: true,
+      github: true,
+      linkedin: true,
+      twitter: true,
+      skills: true,
       createdAt: true,
       updatedAt: true,
+      _count: { select: { posts: true, projects: true } },
     },
   });
+
+  // Or detailed version:
+  // return prisma.user.findUnique({ where: { id }, include: { posts: true, projects: true } });
 };
 
-/**
- * Safer update:
- * - Re-hash password if provided
- * - Enforce single-owner rule on role updates
- * - Never return password in response
- * - Prefer Prisma.UserUpdateInput typing
- */
 const updateUser = async (id: number, payload: Prisma.UserUpdateInput) => {
-  // If password is being updated, hash it
-  // payload.password can be { set: string } or undefined depending on how you call it
   const newPassword =
     typeof (payload as any).password?.set === "string"
       ? (payload as any).password.set
@@ -88,7 +104,6 @@ const updateUser = async (id: number, payload: Prisma.UserUpdateInput) => {
     (payload as any).password = { set: await bcrypt.hash(newPassword, 10) };
   }
 
-  // If promoting to ADMIN/SUPER_ADMIN, enforce single owner
   const newRole =
     typeof (payload as any).role?.set === "string"
       ? (payload as any).role.set
@@ -107,6 +122,11 @@ const updateUser = async (id: number, payload: Prisma.UserUpdateInput) => {
     }
   }
 
+  // Normalize skills array if provided as plain array
+  if (Array.isArray((payload as any).skills)) {
+    (payload as any).skills = { set: (payload as any).skills };
+  }
+
   return prisma.user.update({
     where: { id },
     data: payload,
@@ -118,9 +138,15 @@ const updateUser = async (id: number, payload: Prisma.UserUpdateInput) => {
       picture: true,
       role: true,
       status: true,
+      location: true,
+      website: true,
+      github: true,
+      linkedin: true,
+      twitter: true,
+      skills: true,
       createdAt: true,
       updatedAt: true,
-      // password intentionally omitted
+      _count: { select: { posts: true, projects: true } }, // ✅
     },
   });
 };

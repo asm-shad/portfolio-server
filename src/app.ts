@@ -7,6 +7,7 @@ import { userRouter } from "./modules/user/user.routes";
 import { authRouter } from "./modules/auth/auth.routes";
 import { postRouter } from "./modules/post/post.routes";
 import { projectRouter } from "./modules/project/project.routes";
+import { StatsRoutes } from "./modules/stats/stats.route";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/user", userRouter);
 app.use("/api/post", postRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/project", projectRouter);
+app.use("/api/stats", StatsRoutes);
 
 // Default route
 app.get("/", (_req, res) => {

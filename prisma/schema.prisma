@@ -18,12 +18,13 @@ model User {
   status     UserStatus @default(ACTIVE)
   isVerified Boolean    @default(false)
   bio        String?
-  title      String?    // e.g., "Full Stack Developer"
+  title      String?    
   location   String?
   website    String?
   github     String?
   linkedin   String?
   twitter    String?
+  skills     String[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   posts      Post[]
