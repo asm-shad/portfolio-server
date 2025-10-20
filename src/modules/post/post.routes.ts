@@ -14,7 +14,7 @@ router.post("/", verifyToken, PostController.createPost);
 router.patch("/:id", verifyToken, PostController.updatePost);
 router.patch("/:id/publish", verifyToken, PostController.publishPost);
 router.patch("/:id/unpublish", verifyToken, PostController.unpublishPost);
-router.patch("/:id/views", PostController.incrementViews); // public or internal
+router.patch("/:id/views", PostController.incrementViews);
 router.delete("/:id", verifyToken, PostController.deletePost);
 
 export const postRouter = router;

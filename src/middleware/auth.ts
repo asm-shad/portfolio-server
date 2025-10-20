@@ -17,12 +17,6 @@ export const authenticateToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  console.log("🚨 AUTH MIDDLEWARE TRIGGERED");
-  console.log("📋 Request URL:", req.method, req.originalUrl);
-  console.log("🔑 Authorization Header:", req.headers.authorization);
-  console.log("🍪 Cookies:", req.cookies);
-  console.log("📝 Headers:", JSON.stringify(req.headers, null, 2));
-
   try {
     const token =
       req.cookies.accessToken ||

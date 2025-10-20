@@ -17,8 +17,8 @@ app.use(express.json());
 app.use(compression());
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ your frontend (if using React)
-    credentials: true, // ✅ allows cookies
+    origin: "http://localhost:3000",
+    credentials: true,
   })
 );
 

@@ -54,7 +54,7 @@ export async function seedOwnerIfMissing() {
     github: ADMIN_GITHUB || null,
     linkedin: ADMIN_LINKEDIN || null,
     twitter: ADMIN_TWITTER || null,
-    skills: parsedSkills, // ✅ include in seed
+    skills: parsedSkills,
     status: "ACTIVE" as const,
     isVerified: true,
     role: OWNER_ROLE,
